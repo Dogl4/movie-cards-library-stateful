@@ -1,7 +1,5 @@
-// implement MovieLibrary component here
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-
 import SearchBar from './SearchBar';
 import MovieList from './MovieList';
 
@@ -16,14 +14,35 @@ class MovieLibrary extends Component {
       movies,
     };
     this.handleChange = this.handleChange.bind(this);
+    this.handleStateFilter = this.handleStateFilter.bind(this);
+  }
+
+  handleStateFilter(type, target) {
+    const { movies } = this.props;
+    const { value, checked } = target;
+    let filteredMovies = movies;
+    if (type === 'checkbox') {
+      const current = movies.filter(({ bookmarked }) => bookmarked);
+      filteredMovies = checked ? current : movies;
+    } else if (value.length > 0) {
+      if (type === 'text') {
+        filteredMovies = movies.filter((movie) => movie
+          .title.toLowerCase().includes(value.toLowerCase()));
+      } else {
+        const current = movies.filter((movie) => movie.genre === value);
+        filteredMovies = value !== '' ? current : movies;
+      }
+    }
+    return filteredMovies;
   }
 
   handleChange(event) {
     const { target } = event;
-    const { name } = target;
+    const { name, value, checked, type } = target;
+    const filteredMovies = this.handleStateFilter(type, target);
     this.setState({
-      // Pega o estado atual e salva o novo após a mudança, acessa a chave do objeto state, pelo name e altera seu value
-      [name]: (target.type === 'checkbox' ? target.checked : target.value),
+      [name]: (type === 'checkbox' ? checked : value),
+      movies: filteredMovies,
     });
   }
 
@@ -32,7 +51,6 @@ class MovieLibrary extends Component {
     return (
       <div>
         <SearchBar
-          // Seta: estado inicial e estado ao evento de mudançao
           searchText={ searchText }
           onSearchTextChange={ this.handleChange }
           bookmarkedOnly={ bookmarkedOnly }
